@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VELQIRIS WebGL2 GPU Liquidity Heatmap — Live Interactive Demo</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --panel: #0b1329;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --green: #10b981;
+      --cyan: #06b6d4;
+      --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+    #app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
+    header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+    .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+    .fps-counter { color: var(--cyan); font-family: monospace; font-weight: 700; }
+    .cta-btn { background: var(--gold); color: #000; text-decoration: none; padding: 7px 14px; border-radius: 5px; font-weight: 700; font-size: 12px; transition: opacity 0.15s; }
+    .cta-btn:hover { opacity: 0.9; }
+    .back-btn { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-btn:hover { color: var(--text); }
+    main { position: relative; width: 100%; height: 100%; }
+    canvas { width: 100%; height: 100%; display: block; }
+    footer { background: var(--panel); border-top: 1px solid var(--border); padding: 10px 24px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+    .controls { display: flex; gap: 16px; align-items: center; }
+    .control-item { display: flex; align-items: center; gap: 6px; }
+    .control-item input[type=range] { accent-color: var(--cyan); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">
+        <a class="back-btn" href="index.html">← Back to Overview</a>
+        <h1>VELQIRIS WebGL2 Liquidity Heatmap</h1>
+        <span class="badge">GPU Rendered · 60 FPS</span>
+      </div>
+      <div class="header-actions">
+        <span class="fps-counter" id="fps">60 FPS</span>
+        <a class="cta-btn" href="mailto:chitara.trading@proton.me?subject=VELQIRIS%20WebGL2%20Source%20Inquiry&body=I%20am%20interested%20in%20licensing%20or%20acquiring%20the%20WebGL2%20Heatmap%20source%20code%20($3,900%20USD%20carve-out%20or%20$6,900%20total%20buyout).">Acquire Source Code ($3,900)</a>
+      </div>
+    </header>
+    <main>
+      <canvas id="heatmap"></canvas>
+    </main>
+    <footer>
+      <div class="controls">
+        <div class="control-item">
+          <span>Depth levels:</span>
+          <strong id="levels-count">90</strong>
+        </div>
+        <div class="control-item">
+          <span>Speed:</span>
+          <input type="range" id="speed" min="1" max="5" value="2">
+        </div>
+      </div>
+      <div>
+        <span>Zero external dependencies · Native WebGL2 Shaders · Fully tested in Node test-runner</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="heatmap-core.js"></script>
+  <script src="webgl-heatmap.js"></script>
+  <script>
+    const canvas = document.getElementById('heatmap');
+    const view = new VelqirisWebGLHeatmap(canvas);
+    let tick = 0;
+    let lastTime = performance.now();
+    let frameCount = 0;
+    const fpsElement = document.getElementById('fps');
+    const speedSlider = document.getElementById('speed');
+
+    function animate(currentTime) {
+      frameCount++;
+      if (currentTime - lastTime >= 1000) {
+        fpsElement.textContent = frameCount + " FPS";
+        frameCount = 0;
+        lastTime = currentTime;
+      }
+
+      const speed = parseFloat(speedSlider.value);
+      const now = Date.now();
+      const levels = [];
+      const numLevels = 90;
+
+      for (let i = 0; i < numLevels; i++) {
+        const offset = (i - 45) * 0.08;
+        const wave = Math.sin((tick + i) / 8) * 0.18;
+        const price = 100 + offset + wave;
+        const size = 5 + Math.abs(Math.sin((tick + i) / 11)) * 75;
+        levels.push({
+          venue: 'STREAM_01',
+          timestamp: now,
+          price: price,
+          size: size,
+          side: i < 45 ? 'bid' : 'ask'
+        });
+      }
+
+      view.append(levels, now);
+      tick += speed * 0.5;
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 > Software-asset acquisition: six tested AI, fintech and x402 systems, a 55-package developer source library, ten competition builds and four specialist extensions.
 
-[View the acquisition overview](https://velqiris-acquisition.netlify.app/) · [Inspect the public proof](https://velqiris-acquisition.netlify.app/proof) · [Contact the seller](mailto:chitara.trading@proton.me?subject=VELQIRIS%20Total%20Portfolio%20buyer%20inquiry)
+[⚡ Launch Live 60 FPS WebGL2 Demo](https://velqiris-acquisition.netlify.app/heatmap.html) · [View the acquisition overview](https://velqiris-acquisition.netlify.app/) · [Inspect the public proof](https://velqiris-acquisition.netlify.app/proof) · [Contact the seller](mailto:chitara.trading@proton.me?subject=VELQIRIS%20Total%20Portfolio%20buyer%20inquiry)
 
 ![VELQIRIS agentic-commerce dashboard](assets/velqiris-dashboard.png)
 
