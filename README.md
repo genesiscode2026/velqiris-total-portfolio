@@ -35,9 +35,9 @@ The confidential archive and proprietary sources are **not published in this rep
 
 ## Transaction position
 
-- Total portfolio asking price: **$24,900 USD**.
-- Serious all-in offers considered: **from $14,900 USD**.
-- Optional carve-out: **one mutually selected flagship from $6,000 USD**.
+- **Exclusive Fast-Close Buyout (Total Portfolio):** **$6,900 USD** (valid 7-day window).
+- **Single Exclusive Flagship Carve-Out:** **$3,900 USD** (Choice of MYMSYL, VELQIRIS x402 Stack, or ASYMTRACE+GENESIS).
+- **Settlement:** Same-day Native USDC on Base (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`) or Escrow.com.
 - Exact assets, rights, public-code treatment, exclusions, support and settlement are defined in a signed asset schedule.
 
 ## Commercial disclosures
