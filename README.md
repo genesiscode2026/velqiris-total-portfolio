@@ -23,6 +23,17 @@ VELQIRIS Total Portfolio consolidates approximately two years of software engine
 
 The scheduled portfolio also includes ten competition builds and four specialist extensions: STUPUL, BMW Diagnostic Studio, MARMIYO and AEGIS.
 
+## Asset Delimitation & Scope Matrix (Public Teaser vs. Proprietary Stack)
+
+| Functional Layer | Public Teaser & Showcase (Open Demo) | Proprietary Commercial Acquisition ($3,900 Carve-Out / $6,900 Total Buyout) |
+|---|---|---|
+| **WebGL2 Liquidity Engine** | Standalone WebGL2 canvas renderer, raw shader loop, and public read-only L2 WebSocket connector. | **Full terminal integration (MYMSYL)**, multi-threaded depth buffering, orderbook reconstruction, and custom visual layers. |
+| **Market Data Pipeline** | Read-only public WebSocket endpoint (Hyperliquid L2 Book) without latency guarantees. | **Multi-venue Byzantine Consensus Engine** (Binance, Coinbase, OKX without paid APIs), outlier & MAD anomaly filtering. |
+| **Analytical Workbenches** | High-level screenshots and interface overviews. | **Full proprietary source code** for MYMSYL (860 unit tests) and ASYMTRACE (166 tests), local-first proof labs. |
+| **Agentic Infrastructure** | Architecture descriptions and protocol references. | **Production Model Context Protocol (MCP) server suite**, fail-closed Base x402 payment rails (native USDC), automated verification suite. |
+| **Automated Test Suite** | Disclosed summary counts (2,745 observed test runs). | **Complete test harness**, reproducible verification scripts, and isolated test suites across all 6 core platforms. |
+| **Legal & IP Rights** | Standard public demonstration rights. | **Full intellectual property assignment** (exclusive buyout or single flagship carve-out), buyer-safe release archive (SHA-256 verified), and direct handover support. |
+
 ## Release integrity
 
 - 12 release components and 5,455 scanned files.

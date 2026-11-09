@@ -3,68 +3,248 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>VELQIRIS WebGL2 GPU Liquidity Heatmap — Live Interactive Demo</title>
+  <title>VELQIRIS WebGL2 GPU Liquidity Engine — Live Hyperliquid L2 Feed</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
     :root {
       --bg: #030712;
       --panel: #0b1329;
+      --panel-glass: rgba(11, 19, 41, 0.78);
       --border: #1e293b;
+      --border-highlight: #334155;
       --text: #f1f5f9;
       --muted: #94a3b8;
       --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.25);
+      --red: #f43f5e;
       --cyan: #06b6d4;
       --gold: #f59e0b;
+      --accent: #6366f1;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; overflow: hidden; }
     #app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
-    header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
-    .badge { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
-    .header-actions { display: flex; align-items: center; gap: 16px; font-size: 13px; }
-    .fps-counter { color: var(--cyan); font-family: monospace; font-weight: 700; }
-    .cta-btn { background: var(--gold); color: #000; text-decoration: none; padding: 7px 14px; border-radius: 5px; font-weight: 700; font-size: 12px; transition: opacity 0.15s; }
-    .cta-btn:hover { opacity: 0.9; }
-    .back-btn { color: var(--muted); text-decoration: none; font-size: 13px; }
+    
+    /* Header */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      z-index: 10;
+    }
+    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .back-btn { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s; }
     .back-btn:hover { color: var(--text); }
-    main { position: relative; width: 100%; height: 100%; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .title-group h1 { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); white-space: nowrap; }
+    
+    /* Segmented switchers */
+    .segmented-group { display: flex; align-items: center; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
+    .segmented-btn { background: transparent; border: none; color: var(--muted); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .segmented-btn:hover { color: var(--text); }
+    .segmented-btn.active { background: var(--border-highlight); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .segmented-btn.active.live { background: rgba(16, 185, 129, 0.2); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .benchmarks-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+    }
+    .benchmark-val { color: var(--cyan); font-weight: 700; }
+    .cta-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .cta-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+
+    /* Main Canvas & HUD */
+    main { position: relative; width: 100%; height: 100%; background: #010409; }
     canvas { width: 100%; height: 100%; display: block; }
-    footer { background: var(--panel); border-top: 1px solid var(--border); padding: 10px 24px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-    .controls { display: flex; gap: 16px; align-items: center; }
+
+    /* Glassmorphic Telemetry HUD */
+    .telemetry-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--panel-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px 18px;
+      width: 320px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      pointer-events: auto;
+      z-index: 5;
+    }
+    .hud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .status-indicator { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+    .status-dot.simulated { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .status-dot.reconnecting { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .source-label { font-size: 11px; color: var(--muted); font-family: monospace; }
+    
+    .hud-price-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .hud-pair { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .hud-price { font-size: 26px; font-weight: 800; font-family: ui-monospace, Menlo, monospace; color: #fff; letter-spacing: -0.02em; }
+    .hud-spread { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+    .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; font-family: monospace; }
+    .hud-stat-box { background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.03); }
+    .hud-stat-label { color: var(--muted); display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .hud-stat-val { color: var(--text); font-weight: 600; font-size: 12px; }
+    .hud-stat-val.bid { color: var(--green); }
+    .hud-stat-val.ask { color: var(--red); }
+
+    .hud-legend { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .legend-dot.bid { background: var(--green); }
+    .legend-dot.ask { background: var(--red); }
+
+    /* Footer */
+    footer {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      padding: 8px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+      z-index: 10;
+    }
+    .controls-left { display: flex; align-items: center; gap: 18px; }
     .control-item { display: flex; align-items: center; gap: 6px; }
-    .control-item input[type=range] { accent-color: var(--cyan); }
+    .control-item span { font-weight: 500; font-size: 11px; }
+    .control-item input[type=range] { accent-color: var(--cyan); width: 80px; }
+    .notice-right { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 11px; }
+
+    @media (max-width: 900px) {
+      .benchmarks-badge { display: none; }
+      .telemetry-hud { width: 260px; padding: 10px; font-size: 10px; }
+      .notice-right { display: none; }
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <header>
-      <div class="brand">
-        <a class="back-btn" href="index.html">← Back to Overview</a>
-        <h1>VELQIRIS WebGL2 Liquidity Heatmap</h1>
-        <span class="badge">GPU Rendered · 60 FPS</span>
+      <div class="brand-section">
+        <a class="back-btn" href="index.html">← Portfolio</a>
+        <div class="title-group">
+          <h1>VELQIRIS WebGL2 Heatmap</h1>
+        </div>
+        
+        <!-- Feed Mode Switcher -->
+        <div class="segmented-group">
+          <button id="btn-mode-live" class="segmented-btn active live" onclick="setMode('live')">● Live Hyperliquid L2</button>
+          <button id="btn-mode-sim" class="segmented-btn" onclick="setMode('simulated')">Synthetic Wave</button>
+        </div>
+
+        <!-- Coin Switcher -->
+        <div class="segmented-group" id="coin-selector">
+          <button class="segmented-btn active" id="coin-BTC" onclick="setCoin('BTC')">BTC</button>
+          <button class="segmented-btn" id="coin-ETH" onclick="setCoin('ETH')">ETH</button>
+          <button class="segmented-btn" id="coin-SOL" onclick="setCoin('SOL')">SOL</button>
+        </div>
       </div>
-      <div class="header-actions">
-        <span class="fps-counter" id="fps">60 FPS</span>
-        <a class="cta-btn" href="mailto:chitara.trading@proton.me?subject=VELQIRIS%20WebGL2%20Source%20Inquiry&body=I%20am%20interested%20in%20licensing%20or%20acquiring%20the%20WebGL2%20Heatmap%20source%20code%20($3,900%20USD%20carve-out%20or%20$6,900%20total%20buyout).">Acquire Source Code ($3,900)</a>
+
+      <div class="header-right">
+        <div class="benchmarks-badge">
+          <span>FPS: <strong class="benchmark-val" id="fps-val">60</strong></span>
+          <span>Render: <strong class="benchmark-val" id="render-val">0.2ms</strong></span>
+          <span>Feed: <strong class="benchmark-val" id="latency-val">22ms</strong></span>
+        </div>
+        <a class="cta-btn" href="mailto:chitara.trading@proton.me?subject=VELQIRIS%20WebGL2%20Source%20Acquisition%20Inquiry&body=I%20am%20interested%20in%20acquiring%20the%20VELQIRIS%20WebGL2%20Heatmap%20source%20code%20($3,900%20USD%20carve-out%20or%20$6,900%20complete%20portfolio%20buyout%20via%20Base%20USDC%20/%20Escrow).">Acquire Source ($3,900)</a>
       </div>
     </header>
+
     <main>
       <canvas id="heatmap"></canvas>
+      
+      <!-- Live Telemetry HUD -->
+      <div class="telemetry-hud">
+        <div class="hud-header">
+          <div class="status-indicator">
+            <span class="status-dot" id="hud-status-dot"></span>
+            <span id="hud-status-text">Connected</span>
+          </div>
+          <span class="source-label" id="hud-source-label">Hyperliquid L2</span>
+        </div>
+        <div class="hud-price-row">
+          <div>
+            <div class="hud-pair" id="hud-pair-label">BTC / USD</div>
+            <div class="hud-spread" id="hud-spread-val">Spread: $1.00</div>
+          </div>
+          <div class="hud-price" id="hud-price-val">$74,814.50</div>
+        </div>
+        <div class="hud-grid">
+          <div class="hud-stat-box">
+            <span class="hud-stat-label">Best Bid</span>
+            <span class="hud-stat-val bid" id="hud-bid-val">$74,814.00</span>
+          </div>
+          <div class="hud-stat-box">
+            <span class="hud-stat-label">Best Ask</span>
+            <span class="hud-stat-val ask" id="hud-ask-val">$74,815.00</span>
+          </div>
+          <div class="hud-stat-box">
+            <span class="hud-stat-label">Buffer Points</span>
+            <span class="hud-stat-val" id="hud-points-val">0</span>
+          </div>
+          <div class="hud-stat-box">
+            <span class="hud-stat-label">Updates / Sec</span>
+            <span class="hud-stat-val" id="hud-rate-val">6.5</span>
+          </div>
+        </div>
+        <div class="hud-legend">
+          <div class="legend-item"><span class="legend-dot bid"></span> Bids (Liquidity)</div>
+          <div class="legend-item"><span class="legend-dot ask"></span> Asks (Resistance)</div>
+          <div>Float32Array VBO</div>
+        </div>
+      </div>
     </main>
+
     <footer>
-      <div class="controls">
+      <div class="controls-left">
         <div class="control-item">
-          <span>Depth levels:</span>
-          <strong id="levels-count">90</strong>
+          <span>Window:</span>
+          <div class="segmented-group">
+            <button class="segmented-btn" id="win-15" onclick="setWindow(15000)">15s</button>
+            <button class="segmented-btn active" id="win-30" onclick="setWindow(30000)">30s</button>
+            <button class="segmented-btn" id="win-60" onclick="setWindow(60000)">60s</button>
+          </div>
         </div>
         <div class="control-item">
+          <span>Point Bloom:</span>
+          <input type="range" id="bloom" min="8" max="36" value="20" oninput="setBloom(this.value)">
+        </div>
+        <div class="control-item" id="speed-control" style="display: none;">
           <span>Speed:</span>
           <input type="range" id="speed" min="1" max="5" value="2">
         </div>
       </div>
-      <div>
-        <span>Zero external dependencies · Native WebGL2 Shaders · Fully tested in Node test-runner</span>
+      <div class="notice-right">
+        <span>Raw public WebSocket stream · GPU Shader Pipeline · Tested in Node test-runner</span>
       </div>
     </footer>
   </div>
@@ -72,46 +252,292 @@
   <script src="heatmap-core.js"></script>
   <script src="webgl-heatmap.js"></script>
   <script>
-    const canvas = document.getElementById('heatmap');
-    const view = new VelqirisWebGLHeatmap(canvas);
-    let tick = 0;
-    let lastTime = performance.now();
-    let frameCount = 0;
-    const fpsElement = document.getElementById('fps');
-    const speedSlider = document.getElementById('speed');
+    (function () {
+      'use strict';
 
-    function animate(currentTime) {
-      frameCount++;
-      if (currentTime - lastTime >= 1000) {
-        fpsElement.textContent = frameCount + " FPS";
-        frameCount = 0;
-        lastTime = currentTime;
+      const canvas = document.getElementById('heatmap');
+      let currentMode = 'live'; // 'live' | 'simulated'
+      let currentCoin = 'BTC';
+      let historyWindowMs = 30000;
+      let pointBloom = 20;
+
+      // Initialize WebGL2 Heatmap
+      const view = new VelqirisWebGLHeatmap(canvas, {
+        maxLevels: 15000,
+        maxAgeMs: historyWindowMs,
+        pointSize: pointBloom
+      });
+
+      // UI Elements
+      const fpsEl = document.getElementById('fps-val');
+      const renderEl = document.getElementById('render-val');
+      const latencyEl = document.getElementById('latency-val');
+      const hudStatusDot = document.getElementById('hud-status-dot');
+      const hudStatusText = document.getElementById('hud-status-text');
+      const hudSourceLabel = document.getElementById('hud-source-label');
+      const hudPairLabel = document.getElementById('hud-pair-label');
+      const hudPriceVal = document.getElementById('hud-price-val');
+      const hudSpreadVal = document.getElementById('hud-spread-val');
+      const hudBidVal = document.getElementById('hud-bid-val');
+      const hudAskVal = document.getElementById('hud-ask-val');
+      const hudPointsVal = document.getElementById('hud-points-val');
+      const hudRateVal = document.getElementById('hud-rate-val');
+      const speedControl = document.getElementById('speed-control');
+      const coinSelector = document.getElementById('coin-selector');
+
+      // Telemetry state
+      let frameCount = 0;
+      let lastFpsTime = performance.now();
+      let lastRenderDuration = 0.2;
+      let updateCount = 0;
+      let lastRateTime = performance.now();
+
+      // Hyperliquid WebSocket state
+      let ws = null;
+      let wsReconnectTimer = null;
+      let lastBookState = null;
+      let sampleTimer = null;
+      let syntheticTick = 0;
+
+      function formatPrice(coin, price) {
+        if (!Number.isFinite(price)) return '---';
+        if (coin === 'SOL') return '$' + price.toFixed(2);
+        if (coin === 'ETH') return '$' + price.toFixed(1);
+        return '$' + price.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
       }
 
-      const speed = parseFloat(speedSlider.value);
-      const now = Date.now();
-      const levels = [];
-      const numLevels = 90;
+      function updateHud(bid, ask, time) {
+        if (!bid || !ask) return;
+        const mid = (bid.price + ask.price) / 2;
+        const spread = Math.abs(ask.price - bid.price);
+        const spreadPct = mid > 0 ? ((spread / mid) * 100).toFixed(3) : '0.000';
 
-      for (let i = 0; i < numLevels; i++) {
-        const offset = (i - 45) * 0.08;
-        const wave = Math.sin((tick + i) / 8) * 0.18;
-        const price = 100 + offset + wave;
-        const size = 5 + Math.abs(Math.sin((tick + i) / 11)) * 75;
-        levels.push({
-          venue: 'STREAM_01',
-          timestamp: now,
-          price: price,
-          size: size,
-          side: i < 45 ? 'bid' : 'ask'
-        });
+        hudPairLabel.textContent = currentCoin + ' / USD';
+        hudPriceVal.textContent = formatPrice(currentCoin, mid);
+        hudSpreadVal.textContent = 'Spread: $' + spread.toFixed(2) + ' (' + spreadPct + '%)';
+        hudBidVal.textContent = '$' + bid.price.toFixed(1) + ' (' + bid.size.toFixed(2) + ')';
+        hudAskVal.textContent = '$' + ask.price.toFixed(1) + ' (' + ask.size.toFixed(2) + ')';
+
+        if (time) {
+          const latency = Math.max(1, Math.min(999, Date.now() - time));
+          latencyEl.textContent = latency + 'ms';
+        }
       }
 
-      view.append(levels, now);
-      tick += speed * 0.5;
+      function connectWebSocket() {
+        if (currentMode !== 'live') return;
+        if (ws) {
+          try { ws.close(); } catch (e) {}
+        }
+
+        hudStatusDot.className = 'status-dot reconnecting';
+        hudStatusText.textContent = 'Connecting...';
+        hudSourceLabel.textContent = 'Hyperliquid L2';
+
+        try {
+          ws = new WebSocket('wss://api.hyperliquid.xyz/ws');
+        } catch (e) {
+          console.error('WebSocket connection error:', e);
+          scheduleReconnect();
+          return;
+        }
+
+        ws.onopen = function () {
+          hudStatusDot.className = 'status-dot';
+          hudStatusText.textContent = 'Connected';
+          ws.send(JSON.stringify({
+            method: 'subscribe',
+            subscription: { type: 'l2Book', coin: currentCoin }
+          }));
+        };
+
+        ws.onmessage = function (event) {
+          updateCount++;
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.channel === 'l2Book' && msg.data) {
+              const d = msg.data;
+              if (d.coin !== currentCoin) return;
+              const bids = d.levels[0] || [];
+              const asks = d.levels[1] || [];
+              lastBookState = { bids: bids, asks: asks, time: d.time || Date.now() };
+
+              if (bids.length && asks.length) {
+                const topBid = { price: parseFloat(bids[0].px), size: parseFloat(bids[0].sz) };
+                const topAsk = { price: parseFloat(asks[0].px), size: parseFloat(asks[0].sz) };
+                updateHud(topBid, topAsk, d.time);
+              }
+            }
+          } catch (err) {
+            console.error('Failed to parse WS message:', err);
+          }
+        };
+
+        ws.onerror = function () {
+          hudStatusDot.className = 'status-dot reconnecting';
+          hudStatusText.textContent = 'Reconnecting...';
+        };
+
+        ws.onclose = function () {
+          if (currentMode === 'live') {
+            hudStatusDot.className = 'status-dot reconnecting';
+            hudStatusText.textContent = 'Disconnected';
+            scheduleReconnect();
+          }
+        };
+      }
+
+      function scheduleReconnect() {
+        if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = setTimeout(function () {
+          if (currentMode === 'live') connectWebSocket();
+        }, 2000);
+      }
+
+      // Sample orderbook at 100ms intervals to generate continuous heatmap time stream
+      sampleTimer = setInterval(function () {
+        if (currentMode !== 'live' || !lastBookState) return;
+        const now = Date.now();
+        const levels = [];
+        const bids = lastBookState.bids;
+        const asks = lastBookState.asks;
+
+        for (let i = 0; i < bids.length; i++) {
+          levels.push({
+            venue: 'Hyperliquid',
+            side: 'bid',
+            price: parseFloat(bids[i].px),
+            size: parseFloat(bids[i].sz),
+            timestamp: now
+          });
+        }
+        for (let i = 0; i < asks.length; i++) {
+          levels.push({
+            venue: 'Hyperliquid',
+            side: 'ask',
+            price: parseFloat(asks[i].px),
+            size: parseFloat(asks[i].sz),
+            timestamp: now
+          });
+        }
+
+        if (levels.length > 0) {
+          view.append(levels, now);
+        }
+      }, 100);
+
+      // Animation Loop (60 FPS WebGL)
+      function animate(now) {
+        frameCount++;
+        if (now - lastFpsTime >= 1000) {
+          fpsEl.textContent = frameCount;
+          frameCount = 0;
+          lastFpsTime = now;
+        }
+
+        if (now - lastRateTime >= 1000) {
+          hudRateVal.textContent = updateCount;
+          updateCount = 0;
+          lastRateTime = now;
+        }
+
+        if (currentMode === 'simulated') {
+          const speed = parseFloat(document.getElementById('speed').value || '2');
+          const simNow = Date.now();
+          const levels = [];
+          const numLevels = 90;
+
+          for (let i = 0; i < numLevels; i++) {
+            const offset = (i - 45) * 0.08;
+            const wave = Math.sin((syntheticTick + i) / 8) * 0.18;
+            const price = 100 + offset + wave;
+            const size = 5 + Math.abs(Math.sin((syntheticTick + i) / 11)) * 75;
+            levels.push({
+              venue: 'SYNTH_ENGINE',
+              timestamp: simNow,
+              price: price,
+              size: size,
+              side: i < 45 ? 'bid' : 'ask'
+            });
+          }
+          view.append(levels, simNow);
+          syntheticTick += speed * 0.5;
+
+          const mid = 100 + Math.sin(syntheticTick / 8) * 0.18;
+          hudPairLabel.textContent = 'SIMULATED WAVE';
+          hudPriceVal.textContent = '$' + mid.toFixed(2);
+          hudSpreadVal.textContent = 'Spread: $0.16 (Simulated)';
+          hudBidVal.textContent = '$' + (mid - 0.08).toFixed(2);
+          hudAskVal.textContent = '$' + (mid + 0.08).toFixed(2);
+          latencyEl.textContent = '0ms (Local)';
+        }
+
+        // Render pass & measurement
+        const t0 = performance.now();
+        const stats = view.render();
+        const t1 = performance.now();
+        lastRenderDuration = t1 - t0;
+        renderEl.textContent = lastRenderDuration.toFixed(1) + 'ms';
+
+        if (stats && stats.rendered !== undefined) {
+          hudPointsVal.textContent = stats.rendered.toLocaleString();
+        }
+
+        requestAnimationFrame(animate);
+      }
       requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
+
+      // Global control handlers
+      window.setMode = function (mode) {
+        currentMode = mode;
+        view.book.clear();
+        document.getElementById('btn-mode-live').className = 'segmented-btn' + (mode === 'live' ? ' active live' : '');
+        document.getElementById('btn-mode-sim').className = 'segmented-btn' + (mode === 'simulated' ? ' active' : '');
+
+        if (mode === 'live') {
+          speedControl.style.display = 'none';
+          coinSelector.style.display = 'flex';
+          connectWebSocket();
+        } else {
+          speedControl.style.display = 'flex';
+          coinSelector.style.display = 'none';
+          if (ws) { try { ws.close(); } catch (e) {} ws = null; }
+          hudStatusDot.className = 'status-dot simulated';
+          hudStatusText.textContent = 'Synthetic';
+          hudSourceLabel.textContent = 'Local Shader Wave';
+        }
+      };
+
+      window.setCoin = function (coin) {
+        if (currentCoin === coin) return;
+        currentCoin = coin;
+        document.querySelectorAll('#coin-selector .segmented-btn').forEach(function (btn) {
+          btn.className = 'segmented-btn';
+        });
+        document.getElementById('coin-' + coin).className = 'segmented-btn active';
+        view.book.clear();
+        lastBookState = null;
+        if (currentMode === 'live') {
+          connectWebSocket();
+        }
+      };
+
+      window.setWindow = function (ms) {
+        historyWindowMs = ms;
+        view.book.maxAgeMs = ms;
+        ['15', '30', '60'].forEach(function (sec) {
+          document.getElementById('win-' + sec).className = 'segmented-btn' + (ms === parseInt(sec) * 1000 ? ' active' : '');
+        });
+      };
+
+      window.setBloom = function (size) {
+        pointBloom = Number(size);
+        view.pointSize = pointBloom;
+      };
+
+      // Start initial WebSocket connection
+      connectWebSocket();
+    })();
   </script>
 </body>
 </html>
