@@ -4,7 +4,7 @@
 >
 > **NOTICE:** Publicly viewable demonstration source. No commercial licence is granted. The proprietary integration stack (Byzantine consensus, MAD filtering, 2,745 tests) is available for acquisition.
 
-[⚡ Launch Live WebGL2 Demo](https://velqiris-acquisition.netlify.app/heatmap.html) · [120s Technical Walkthrough](https://velqiris-acquisition.netlify.app/walkthrough.html) · [View the acquisition overview](https://velqiris-acquisition.netlify.app/) · [Inspect the public proof](https://velqiris-acquisition.netlify.app/proof) · [Contact the seller](mailto:chitara.trading@proton.me?subject=VELQIRIS%20Total%20Portfolio%20buyer%20inquiry)
+[⚡ Launch Live WebGL2 Demo](https://velqiris-acquisition.netlify.app/heatmap.html) · [Two-Minute Technical Overview](https://velqiris-acquisition.netlify.app/walkthrough.html) · [View the acquisition overview](https://velqiris-acquisition.netlify.app/) · [Inspect the public proof](https://velqiris-acquisition.netlify.app/proof) · [Contact the seller](mailto:chitara.trading@proton.me?subject=VELQIRIS%20Total%20Portfolio%20buyer%20inquiry)
 
 ![VELQIRIS agentic-commerce dashboard](assets/velqiris-dashboard.png)
 
