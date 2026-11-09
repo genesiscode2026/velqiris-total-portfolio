@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>VELQIRIS WebGL2 GPU Liquidity Engine — Live Hyperliquid L2 Feed</title>
+  <title>VELQIRIS WebGL2 Liquidity Renderer — Live Hyperliquid L2 Demonstration</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
     :root {
       --bg: #030712;
       --panel: #0b1329;
-      --panel-glass: rgba(11, 19, 41, 0.78);
+      --panel-glass: rgba(11, 19, 41, 0.88);
       --border: #1e293b;
       --border-highlight: #334155;
       --text: #f1f5f9;
@@ -36,15 +36,15 @@
       gap: 14px;
       z-index: 10;
     }
-    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .brand-section { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .back-btn { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: color 0.15s; }
     .back-btn:hover { color: var(--text); }
     .title-group { display: flex; align-items: center; gap: 10px; }
-    .title-group h1 { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); white-space: nowrap; }
+    .title-group h1 { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); white-space: nowrap; }
     
     /* Segmented switchers */
     .segmented-group { display: flex; align-items: center; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
-    .segmented-btn { background: transparent; border: none; color: var(--muted); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .segmented-btn { background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .segmented-btn:hover { color: var(--text); }
     .segmented-btn.active { background: var(--border-highlight); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .segmented-btn.active.live { background: rgba(16, 185, 129, 0.2); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.4); }
@@ -53,7 +53,7 @@
     .benchmarks-badge {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       background: rgba(6, 182, 212, 0.08);
       border: 1px solid rgba(6, 182, 212, 0.25);
       padding: 4px 10px;
@@ -79,6 +79,23 @@
     main { position: relative; width: 100%; height: 100%; background: #010409; }
     canvas { width: 100%; height: 100%; display: block; }
 
+    /* Mode Banner */
+    .mode-banner {
+      display: none;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--gold);
+      max-width: 380px;
+      z-index: 6;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
     /* Glassmorphic Telemetry HUD */
     .telemetry-hud {
       position: absolute;
@@ -90,12 +107,12 @@
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 8px;
       padding: 14px 18px;
-      width: 320px;
+      width: 330px;
       box-shadow: 0 12px 32px rgba(0,0,0,0.5);
       pointer-events: auto;
       z-index: 5;
     }
-    .hud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .hud-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .status-indicator { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
     .status-dot.simulated { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
@@ -103,19 +120,20 @@
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .source-label { font-size: 11px; color: var(--muted); font-family: monospace; }
     
-    .hud-price-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .hud-price-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
     .hud-pair { font-size: 13px; font-weight: 700; color: var(--muted); }
     .hud-price { font-size: 26px; font-weight: 800; font-family: ui-monospace, Menlo, monospace; color: #fff; letter-spacing: -0.02em; }
     .hud-spread { font-size: 11px; color: var(--muted); font-family: monospace; }
 
-    .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; font-family: monospace; }
-    .hud-stat-box { background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.03); }
+    .hud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; font-family: monospace; }
+    .hud-stat-box { background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.03); }
     .hud-stat-label { color: var(--muted); display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-    .hud-stat-val { color: var(--text); font-weight: 600; font-size: 12px; }
+    .hud-stat-val { color: var(--text); font-weight: 600; font-size: 11px; }
     .hud-stat-val.bid { color: var(--green); }
     .hud-stat-val.ask { color: var(--red); }
 
-    .hud-legend { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+    .hud-disclaimer { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 10px; color: #718096; line-height: 1.4; }
+    .hud-legend { margin-top: 6px; display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
     .legend-dot.bid { background: var(--green); }
@@ -132,17 +150,19 @@
       font-size: 11px;
       color: var(--muted);
       z-index: 10;
+      gap: 12px;
     }
-    .controls-left { display: flex; align-items: center; gap: 18px; }
+    .controls-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     .control-item { display: flex; align-items: center; gap: 6px; }
     .control-item span { font-weight: 500; font-size: 11px; }
-    .control-item input[type=range] { accent-color: var(--cyan); width: 80px; }
-    .notice-right { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 11px; }
+    .control-item input[type=range] { accent-color: var(--cyan); width: 75px; }
+    .notice-right { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 10px; }
 
     @media (max-width: 900px) {
       .benchmarks-badge { display: none; }
-      .telemetry-hud { width: 260px; padding: 10px; font-size: 10px; }
+      .telemetry-hud { width: 280px; padding: 10px; font-size: 10px; }
       .notice-right { display: none; }
+      .cta-btn { font-size: 11px; padding: 5px 10px; }
     }
   </style>
 </head>
@@ -171,17 +191,22 @@
 
       <div class="header-right">
         <div class="benchmarks-badge">
-          <span>FPS: <strong class="benchmark-val" id="fps-val">60</strong></span>
+          <span>Measured FPS: <strong class="benchmark-val" id="fps-val">60</strong></span>
           <span>Render: <strong class="benchmark-val" id="render-val">0.2ms</strong></span>
-          <span>Feed: <strong class="benchmark-val" id="latency-val">22ms</strong></span>
+          <span>Feed age: <strong class="benchmark-val" id="latency-val">120ms</strong></span>
         </div>
-        <a class="cta-btn" href="mailto:chitara.trading@proton.me?subject=VELQIRIS%20WebGL2%20Source%20Acquisition%20Inquiry&body=I%20am%20interested%20in%20acquiring%20the%20VELQIRIS%20WebGL2%20Heatmap%20source%20code%20($3,900%20USD%20carve-out%20or%20$6,900%20complete%20portfolio%20buyout%20via%20Base%20USDC%20/%20Escrow).">Acquire Source ($3,900)</a>
+        <a class="cta-btn" href="mailto:chitara.trading@proton.me?subject=Inquiry%20regarding%20Proprietary%20MYMSYL%2FVELQIRIS%20Stack%20($3,900%20carve-out%20/%20$6,900%20buyout)&body=Hello,%0A%0AI%20am%20interested%20in%20evaluating%20the%20proprietary%20MYMSYL/VELQIRIS%20stack%20($3,900%20single%20flagship%20carve-out%20or%20$6,900%20total%20buyout).%0A%0AName:%20%0ACompany%20/%20Project:%20%0AIntended%20use%20case:%20%0APreferred%20settlement%20route%20(Base%20native%20USDC%20/%20Escrow):%20">Acquire the Proprietary MYMSYL/VELQIRIS Stack — $3,900</a>
       </div>
     </header>
 
     <main>
       <canvas id="heatmap"></canvas>
       
+      <!-- Synthetic Explanation Banner -->
+      <div class="mode-banner" id="sim-banner">
+        <strong>Synthetic Simulation Mode:</strong> Procedural multi-wave depth generator active for stress-testing shader pipeline throughput without remote network jitter.
+      </div>
+
       <!-- Live Telemetry HUD -->
       <div class="telemetry-hud">
         <div class="hud-header">
@@ -217,9 +242,12 @@
           </div>
         </div>
         <div class="hud-legend">
-          <div class="legend-item"><span class="legend-dot bid"></span> Bids (Liquidity)</div>
+          <div class="legend-item"><span class="legend-dot bid"></span> Bids (Liquidity Depth)</div>
           <div class="legend-item"><span class="legend-dot ask"></span> Asks (Resistance)</div>
           <div>Float32Array VBO</div>
+        </div>
+        <div class="hud-disclaimer">
+          Publicly viewable demonstration source. No commercial licence is granted. The proprietary integration stack (Byzantine consensus, MAD filtering, 2,745 tests) is available for acquisition.
         </div>
       </div>
     </main>
@@ -244,7 +272,7 @@
         </div>
       </div>
       <div class="notice-right">
-        <span>Raw public WebSocket stream · GPU Shader Pipeline · Tested in Node test-runner</span>
+        <span>NOTICE: Publicly viewable demonstration source. No commercial licence is granted. The proprietary integration stack is available for acquisition.</span>
       </div>
     </footer>
   </div>
@@ -261,12 +289,30 @@
       let historyWindowMs = 30000;
       let pointBloom = 20;
 
-      // Initialize WebGL2 Heatmap
-      const view = new VelqirisWebGLHeatmap(canvas, {
-        maxLevels: 15000,
-        maxAgeMs: historyWindowMs,
-        pointSize: pointBloom
-      });
+      // Initialize WebGL2 Heatmap with safe fallback detection
+      let view;
+      try {
+        view = new VelqirisWebGLHeatmap(canvas, {
+          maxLevels: 15000,
+          maxAgeMs: historyWindowMs,
+          pointSize: pointBloom
+        });
+      } catch (err) {
+        console.error('WebGL2 initialization error:', err);
+        const notice = document.createElement('div');
+        notice.style.position = 'absolute';
+        notice.style.top = '50%';
+        notice.style.left = '50%';
+        notice.style.transform = 'translate(-50%, -50%)';
+        notice.style.background = '#1e1b4b';
+        notice.style.padding = '24px';
+        notice.style.borderRadius = '8px';
+        notice.style.color = '#fff';
+        notice.style.textAlign = 'center';
+        notice.innerHTML = '<h3>WebGL2 Hardware Acceleration Required</h3><p>Your browser could not allocate a WebGL2 GPU context. Please enable hardware acceleration or view on a modern browser.</p>';
+        document.querySelector('main').appendChild(notice);
+        return;
+      }
 
       // UI Elements
       const fpsEl = document.getElementById('fps-val');
@@ -284,6 +330,7 @@
       const hudRateVal = document.getElementById('hud-rate-val');
       const speedControl = document.getElementById('speed-control');
       const coinSelector = document.getElementById('coin-selector');
+      const simBanner = document.getElementById('sim-banner');
 
       // Telemetry state
       let frameCount = 0;
@@ -319,8 +366,8 @@
         hudAskVal.textContent = '$' + ask.price.toFixed(1) + ' (' + ask.size.toFixed(2) + ')';
 
         if (time) {
-          const latency = Math.max(1, Math.min(999, Date.now() - time));
-          latencyEl.textContent = latency + 'ms';
+          const feedAge = Math.max(1, Math.min(9999, Date.now() - time));
+          latencyEl.textContent = feedAge + 'ms';
         }
       }
 
@@ -426,7 +473,7 @@
         }
       }, 100);
 
-      // Animation Loop (60 FPS WebGL)
+      // Animation Loop (Measured FPS on client GPU)
       function animate(now) {
         frameCount++;
         if (now - lastFpsTime >= 1000) {
@@ -469,7 +516,7 @@
           hudSpreadVal.textContent = 'Spread: $0.16 (Simulated)';
           hudBidVal.textContent = '$' + (mid - 0.08).toFixed(2);
           hudAskVal.textContent = '$' + (mid + 0.08).toFixed(2);
-          latencyEl.textContent = '0ms (Local)';
+          latencyEl.textContent = 'Local clock';
         }
 
         // Render pass & measurement
@@ -497,10 +544,12 @@
         if (mode === 'live') {
           speedControl.style.display = 'none';
           coinSelector.style.display = 'flex';
+          simBanner.style.display = 'none';
           connectWebSocket();
         } else {
           speedControl.style.display = 'flex';
           coinSelector.style.display = 'none';
+          simBanner.style.display = 'block';
           if (ws) { try { ws.close(); } catch (e) {} ws = null; }
           hudStatusDot.className = 'status-dot simulated';
           hudStatusText.textContent = 'Synthetic';
