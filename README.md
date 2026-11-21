@@ -1,10 +1,18 @@
 # VELQIRIS Total Portfolio
 
-> Dependency-free WebGL2 liquidity renderer with a live Hyperliquid L2 feed — public demonstration for the proprietary VELQIRIS/MYMSYL stack.
+> Use, license or acquire tested VELQIRIS software: a live Base USDC x402 endpoint, an automatically delivered commercial evidence bundle, or the complete source-code portfolio.
 >
 > **NOTICE:** Publicly viewable demonstration source. No commercial licence is granted. The proprietary integration stack (Byzantine consensus, MAD filtering, 2,745 tests) is available for acquisition.
 
-[⚡ Launch Live WebGL2 Demo](https://genesiscode2026.github.io/velqiris-total-portfolio/heatmap.html) · [Two-Minute Technical Overview](https://genesiscode2026.github.io/velqiris-total-portfolio/walkthrough.html) · [View the acquisition overview](https://genesiscode2026.github.io/velqiris-total-portfolio/) · [Inspect the public proof](https://genesiscode2026.github.io/velqiris-total-portfolio/proof.html) · [Contact the seller](mailto:chitara.trading@proton.me?subject=VELQIRIS%20Total%20Portfolio%20buyer%20inquiry)
+[Use Release Guardian · 0.005 USDC](https://genesis-agent-tools.genesisagenttools.workers.dev/release-guardian) · [Buy Signed Release Bundle · 79 USDC](https://x402git.com/genesiscode2026/genesis-mcp-production-readiness?campaign_id=portfolio-readme) · [View acquisition options](https://genesiscode2026.github.io/velqiris-total-portfolio/#buy-now) · [⚡ Live WebGL2 Demo](https://genesiscode2026.github.io/velqiris-total-portfolio/heatmap.html) · [Public proof](https://genesiscode2026.github.io/velqiris-total-portfolio/proof.html)
+
+## Three commercial routes
+
+| Route | Price | Delivery |
+|---|---:|---|
+| Release Guardian pay-per-use API | 0.005 USDC per quick check | Automated HTTP 402 on Base; no account or API key |
+| Signed Release Bundle | 79 USDC one-time | Automated checkout and signed ZIP delivery through X402 Git |
+| Total source-code portfolio | $6,900 asking price | Signed asset schedule, Base USDC or Escrow.com, controlled handover |
 
 ![VELQIRIS agentic-commerce dashboard](assets/velqiris-dashboard.png)
 
