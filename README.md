@@ -48,7 +48,7 @@ The confidential archive and proprietary sources are **not published in this rep
 
 ## Transaction position
 
-- **Exclusive Fast-Close Buyout (Total Portfolio):** **$6,900 USD** (valid 7-day window).
+- **Canonical Fast-Close Asking Price (Total Portfolio):** **$6,900 USD**, subject to availability, buyer qualification and signed terms.
 - **Single Exclusive Flagship Carve-Out:** **$3,900 USD** (Choice of MYMSYL, VELQIRIS x402 Stack, or ASYMTRACE+GENESIS).
 - **Settlement:** Same-day Native USDC on Base (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`) or Escrow.com.
 - Exact assets, rights, public-code treatment, exclusions, support and settlement are defined in a signed asset schedule.
